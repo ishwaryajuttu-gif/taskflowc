@@ -125,9 +125,9 @@ GitHub Actions runs the same script on Linux and Windows for every pull request 
 
 ## 📖 Git Workflow
 
-- `main` — stable production branch
-- `development` — active development branch
-- Changes merged via Pull Requests
+- `main` — the stable branch; the tests pass on every commit
+- Each change is made on its own short-lived branch named for what it does, such as `fix/add-exit-code` or `feature/sort-by-due`
+- Branches are merged into `main` through pull requests once the Tests checks pass, then deleted
 
 ## 👩‍💻 Author
 
