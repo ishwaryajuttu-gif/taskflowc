@@ -237,9 +237,10 @@ void display_tasks(void) {
         return;
     }
     while (current != NULL) {
-        printf("ID: %d | Title: %s | Due: %s | Done: %s\n",
+        printf("ID: %d | Title: %s | Description: %s | Due: %s | Done: %s\n",
             current->id,
             current->title,
+            current->description,
             current->due_date,
             current->completed ? "Yes" : "No");
         current = current->next;

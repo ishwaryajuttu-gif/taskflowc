@@ -8,7 +8,7 @@ A command-line Task Manager application built in C, demonstrating core Data Stru
 
 - ✅ Add tasks with title, description, and due date
 - 🔢 Every task gets a numeric ID, so titles don't have to be unique
-- 📋 List all tasks with their ID and status
+- 📋 List all tasks with their ID, description, due date and status
 - ✔️ Mark tasks as completed by ID
 - 🗑️ Delete tasks by ID
 - 💾 Persistent storage using file I/O (tasks.txt)
@@ -75,8 +75,8 @@ Each new task gets the next ID, one more than the highest ID in use, and `add` p
 Example output:
 
 ```text
-ID: 1 | Title: Buy milk | Due: 2026-06-30 | Done: No
-ID: 2 | Title: Buy milk | Due: 2026-07-07 | Done: Yes
+ID: 1 | Title: Buy milk | Description: shop | Due: 2026-06-30 | Done: No
+ID: 2 | Title: Buy milk | Description: market | Due: 2026-07-07 | Done: Yes
 ```
 
 ### Mark task as completed
