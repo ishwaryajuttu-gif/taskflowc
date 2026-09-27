@@ -25,6 +25,8 @@ taskflowc/
 │   ├── task_manager.h   # Shared declarations and field size limits
 │   ├── task_manager.c   # Core task logic & data structure
 │   └── main.c           # CLI entry point
+├── tests/
+│   └── run_tests.sh     # Builds the program and runs all checks
 ├── tasks.txt            # Task storage, created at runtime (not committed)
 ├── .gitignore
 ├── LICENSE
@@ -74,6 +76,16 @@ Titles can be up to 99 characters, descriptions up to 254 and due dates up to 19
 ```bash
 ./taskflowc delete "Task Title"
 ```
+
+## 🧪 Testing
+
+Run the test script with bash (Git Bash on Windows):
+
+```bash
+bash tests/run_tests.sh
+```
+
+It builds the program into a temporary folder and checks every command, input limits, and handling of corrupt or Windows-style `tasks.txt` files. It prints `PASS` or `FAIL` for each check and exits with status 1 if anything fails.
 
 ## 💡 DSA Concepts Used
 
