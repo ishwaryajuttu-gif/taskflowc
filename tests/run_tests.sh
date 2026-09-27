@@ -65,7 +65,7 @@ expect_eq "add prints confirmation with ID" "Task added: Buy milk (ID 1)" "$OUT"
 expect_eq "add saves the task" "1|Buy milk|grocery|2026-06-30|0" "$(tasks)"
 
 run list
-expect_eq "list shows the task" "ID: 1 | Title: Buy milk | Due: 2026-06-30 | Done: No" "$OUT"
+expect_eq "list shows the task" "ID: 1 | Title: Buy milk | Description: grocery | Due: 2026-06-30 | Done: No" "$OUT"
 
 run complete 1
 expect_eq "complete prints confirmation" "Task marked complete: Buy milk (ID 1)" "$OUT"
@@ -88,7 +88,7 @@ run add B "" 2026-01-02
 run add C third 2026-01-03
 run list
 expect_eq "task after an empty description still loads" \
-    "$(printf 'ID: 1 | Title: A | Due: 2026-01-01 | Done: No\nID: 2 | Title: B | Due: 2026-01-02 | Done: No\nID: 3 | Title: C | Due: 2026-01-03 | Done: No')" "$OUT"
+    "$(printf 'ID: 1 | Title: A | Description: first | Due: 2026-01-01 | Done: No\nID: 2 | Title: B | Description:  | Due: 2026-01-02 | Done: No\nID: 3 | Title: C | Description: third | Due: 2026-01-03 | Done: No')" "$OUT"
 run add D fourth ""
 expect_eq "no tasks lost after saving again" \
     "$(printf '1|A|first|2026-01-01|0\n2|B||2026-01-02|0\n3|C|third|2026-01-03|0\n4|D|fourth||0')" "$(tasks)"
@@ -155,7 +155,7 @@ reset
 printf 'Old|one|2026|0\nOld2||2026|1\n' > tasks.txt
 run list
 expect_eq "old-format tasks are numbered on load" \
-    "$(printf 'ID: 1 | Title: Old | Due: 2026 | Done: No\nID: 2 | Title: Old2 | Due: 2026 | Done: Yes')" "$OUT"
+    "$(printf 'ID: 1 | Title: Old | Description: one | Due: 2026 | Done: No\nID: 2 | Title: Old2 | Description:  | Due: 2026 | Done: Yes')" "$OUT"
 expect_eq "list doesn't rewrite the file" "$(printf 'Old|one|2026|0\nOld2||2026|1')" "$(tasks)"
 run add New n 2026
 expect_eq "next save writes IDs" \
@@ -165,7 +165,7 @@ reset
 printf '5|A|a|d|0\nB|b|d|0\n' > tasks.txt
 run list
 expect_eq "old-format task after an ID gets the next free ID" \
-    "$(printf 'ID: 5 | Title: A | Due: d | Done: No\nID: 6 | Title: B | Due: d | Done: No')" "$OUT"
+    "$(printf 'ID: 5 | Title: A | Description: a | Due: d | Done: No\nID: 6 | Title: B | Description: b | Due: d | Done: No')" "$OUT"
 
 echo "== Input validation (overflow regression)"
 reset
@@ -214,10 +214,10 @@ echo "== Windows line endings"
 reset
 printf '3|W|win|2026|1\r\n' > tasks.txt
 run list
-expect_eq "CRLF file loads" "ID: 3 | Title: W | Due: 2026 | Done: Yes" "$OUT"
+expect_eq "CRLF file loads" "ID: 3 | Title: W | Description: win | Due: 2026 | Done: Yes" "$OUT"
 printf 'W|win|2026|1\r\n' > tasks.txt
 run list
-expect_eq "CRLF file without IDs loads" "ID: 1 | Title: W | Due: 2026 | Done: Yes" "$OUT"
+expect_eq "CRLF file without IDs loads" "ID: 1 | Title: W | Description: win | Due: 2026 | Done: Yes" "$OUT"
 
 echo
 echo "$passed passed, $failed failed"
