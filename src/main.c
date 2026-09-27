@@ -1,32 +1,42 @@
 #include <stdio.h>
 #include <string.h>
+#include "task_manager.h"
 
-void load_tasks();
-void add_task(char* title, char* description, char* due_date);
-void display_tasks();
-void complete_task(char* title);
-void delete_task(char* title);
+static void print_usage(void) {
+    printf("Usage:\n");
+    printf("  ./taskflowc add \"Title\" \"Description\" \"YYYY-MM-DD\"\n");
+    printf("  ./taskflowc list\n");
+    printf("  ./taskflowc complete \"Title\"\n");
+    printf("  ./taskflowc delete \"Title\"\n");
+}
 
 int main(int argc, char* argv[]) {
-    load_tasks();
-
     if (argc < 2) {
-        printf("Usage: ./taskflowc <command>\n");
-        printf("Commands: add, list, complete, delete\n");
+        print_usage();
         return 1;
     }
 
-    if (strcmp(argv[1], "add") == 0) {
-        add_task(argv[2], argv[3], argv[4]);
-    } else if (strcmp(argv[1], "list") == 0) {
-        display_tasks();
-    } else if (strcmp(argv[1], "complete") == 0) {
-        complete_task(argv[2]);
-    } else if (strcmp(argv[1], "delete") == 0) {
-        delete_task(argv[2]);
-    } else {
-        printf("Unknown command.\n");
+    // Refuse to run if tasks.txt is corrupt, so a later save can't overwrite it
+    if (load_tasks() != 0) {
+        printf("Fix or remove tasks.txt before continuing.\n");
+        free_tasks();
+        return 1;
     }
 
-    return 0;
+    int status = 0;
+    if (strcmp(argv[1], "add") == 0 && argc == 5) {
+        add_task(argv[2], argv[3], argv[4]);
+    } else if (strcmp(argv[1], "list") == 0 && argc == 2) {
+        display_tasks();
+    } else if (strcmp(argv[1], "complete") == 0 && argc == 3) {
+        complete_task(argv[2]);
+    } else if (strcmp(argv[1], "delete") == 0 && argc == 3) {
+        delete_task(argv[2]);
+    } else {
+        print_usage();
+        status = 1;
+    }
+
+    free_tasks();
+    return status;
 }
