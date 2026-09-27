@@ -171,20 +171,28 @@ echo "== Input validation (overflow regression)"
 reset
 run add "$(repeat x 99)" d 2026
 expect_eq "99-character title accepted" "Task added: $(repeat x 99) (ID 1)" "$OUT"
+expect_eq "accepted add exits with status 0" "0" "$STATUS"
 run add "$(repeat x 100)" d 2026
 expect_eq "100-character title rejected" "Error: Title is too long (max 99 characters)." "$OUT"
+expect_eq "long title exits with status 1" "1" "$STATUS"
 run add ok "$(repeat y 254)" 2026
 expect_eq "254-character description accepted" "Task added: ok (ID 2)" "$OUT"
+expect_eq "accepted add exits with status 0" "0" "$STATUS"
 run add ok2 "$(repeat y 255)" 2026
 expect_eq "255-character description rejected" "Error: Description is too long (max 254 characters)." "$OUT"
+expect_eq "long description exits with status 1" "1" "$STATUS"
 run add ok3 d "$(repeat 9 20)"
 expect_eq "20-character due date rejected" "Error: Due date is too long (max 19 characters)." "$OUT"
+expect_eq "long due date exits with status 1" "1" "$STATUS"
 run add "a|b" d 2026
 expect_eq "'|' in title rejected" "Error: Title cannot contain '|' or line breaks." "$OUT"
+expect_eq "'|' in title exits with status 1" "1" "$STATUS"
 run add t "$(printf 'line1\nline2')" 2026
 expect_eq "line break in description rejected" "Error: Description cannot contain '|' or line breaks." "$OUT"
+expect_eq "line break exits with status 1" "1" "$STATUS"
 run add "" d 2026
 expect_eq "empty title rejected" "Error: title cannot be empty." "$OUT"
+expect_eq "empty title exits with status 1" "1" "$STATUS"
 expect_eq "only the two valid tasks were saved" "2" "$(tasks | wc -l | tr -d ' ')"
 run list
 expect_eq "max-length fields load back" "2" "$(printf '%s\n' "$OUT" | grep -c '^ID:')"

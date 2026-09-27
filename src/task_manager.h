@@ -7,7 +7,8 @@
 
 // Returns 0 on success, -1 if the task file is unreadable or corrupt
 int load_tasks(void);
-void add_task(const char* title, const char* description, const char* due_date);
+// Returns 0 if the task was added, -1 if the input was rejected
+int add_task(const char* title, const char* description, const char* due_date);
 void display_tasks(void);
 void complete_task(int id);
 void delete_task(int id);
