@@ -21,6 +21,7 @@ A command-line Task Manager application built in C, demonstrating core Data Stru
 
 taskflowc/
 ├── src/
+│   ├── task_manager.h   # Shared declarations and field size limits
 │   ├── task_manager.c   # Core task logic & data structure
 │   └── main.c           # CLI entry point
 ├── tasks.txt            # Auto-generated task storage
