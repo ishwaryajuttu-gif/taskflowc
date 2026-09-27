@@ -230,7 +230,69 @@ int add_task(const char* title, const char* description, const char* due_date) {
     return 0;
 }
 
-void display_tasks(void) {
+// 1 if the text is a YYYY-MM-DD date, which sorts correctly as a plain string
+static int is_iso_date(const char* text) {
+    if (strlen(text) != 10) return 0;
+    for (int i = 0; i < 10; i++) {
+        if (i == 4 || i == 7) {
+            if (text[i] != '-') return 0;
+        } else if (text[i] < '0' || text[i] > '9') {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+// Negative if a is due before b; tasks without a YYYY-MM-DD date sort after all dated ones
+static int compare_due(const Task* a, const Task* b) {
+    int a_dated = is_iso_date(a->due_date);
+    int b_dated = is_iso_date(b->due_date);
+    if (a_dated != b_dated) return a_dated ? -1 : 1;
+    if (!a_dated) return 0;
+    return strcmp(a->due_date, b->due_date);
+}
+
+// Merge two sorted lists; takes from left on ties so the sort is stable
+static Task* merge_by_due(Task* left, Task* right) {
+    Task start;
+    Task* end = &start;
+    while (left != NULL && right != NULL) {
+        if (compare_due(right, left) < 0) {
+            end->next = right;
+            right = right->next;
+        } else {
+            end->next = left;
+            left = left->next;
+        }
+        end = end->next;
+    }
+    end->next = (left != NULL) ? left : right;
+    return start.next;
+}
+
+// Merge sort the linked list by due date: split at the middle, sort each half, merge
+static Task* sort_by_due(Task* list) {
+    if (list == NULL || list->next == NULL) return list;
+
+    Task* slow = list;
+    Task* fast = list->next;
+    while (fast != NULL && fast->next != NULL) {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+    Task* right = slow->next;
+    slow->next = NULL;
+
+    return merge_by_due(sort_by_due(list), sort_by_due(right));
+}
+
+void display_tasks(int by_due) {
+    if (by_due) {
+        // Only the in-memory order changes; list never saves, so tasks.txt keeps its order
+        head = sort_by_due(head);
+        for (tail = head; tail != NULL && tail->next != NULL; tail = tail->next) {}
+    }
+
     Task* current = head;
     if (current == NULL) {
         printf("No tasks found.\n");

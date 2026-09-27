@@ -37,6 +37,11 @@ reset() {
     rm -f tasks.txt
 }
 
+# IDs from the last list output, space-separated, in the order shown
+listed_ids() {
+    printf '%s\n' "$OUT" | sed -n 's/^ID: \([0-9]*\) .*/\1/p' | tr '\n' ' ' | sed 's/ $//'
+}
+
 repeat() {
     printf "%${2}s" "" | tr ' ' "$1"
 }
@@ -111,7 +116,7 @@ expect_eq "add after deleting every task" "1|T6|d|2026|0" "$(tasks)"
 
 echo "== Missing or extra arguments (crash regression)"
 reset
-for args in "" "add" "add OnlyTitle" "add T D" "complete" "delete" "complete 1 2" "list extra" "bogus"; do
+for args in "" "add" "add OnlyTitle" "add T D" "complete" "delete" "complete 1 2" "list extra" "list --by-date" "list --by-due extra" "bogus"; do
     # shellcheck disable=SC2086
     run $args
     expect_eq "'${args:-<none>}' exits with status 1" "1" "$STATUS"
@@ -166,6 +171,46 @@ printf '5|A|a|d|0\nB|b|d|0\n' > tasks.txt
 run list
 expect_eq "old-format task after an ID gets the next free ID" \
     "$(printf 'ID: 5 | Title: A | Description: a | Due: d | Done: No\nID: 6 | Title: B | Description: b | Due: d | Done: No')" "$OUT"
+
+echo "== Sorting by due date"
+reset
+run list --by-due
+expect_eq "sorted list with no tasks" "No tasks found." "$OUT"
+expect_eq "sorted list with no tasks exits 0" "0" "$STATUS"
+
+run add C c 2026-03-01
+run add A a 2026-01-15
+run add NoDate n ""
+run add B b 2026-02-10
+run add Later l "next week"
+run add A2 a2 2026-01-15
+run add Short s 2026-1-5
+before="$(tasks)"
+
+run list --by-due
+expect_eq "list --by-due exits 0" "0" "$STATUS"
+expect_eq "earliest first, ties keep order, undated tasks last" "2 6 4 1 3 5 7" \
+    "$(listed_ids)"
+expect_eq "sorted list shows full task lines" \
+    "ID: 2 | Title: A | Description: a | Due: 2026-01-15 | Done: No" "${OUT%%$'\n'*}"
+expect_eq "list --by-due doesn't change tasks.txt" "$before" "$(tasks)"
+
+run list
+expect_eq "plain list keeps file order" "1 2 3 4 5 6 7" \
+    "$(listed_ids)"
+
+reset
+run add Only o 2026-05-05
+run list --by-due
+expect_eq "sorting a single task" "ID: 1 | Title: Only | Description: o | Due: 2026-05-05 | Done: No" "$OUT"
+
+reset
+for d in 2026-12-31 2026-11-30 2026-10-31 2026-09-30 2026-08-31 2026-07-31 2026-06-30 2026-05-31 2026-04-30 2026-03-31 2026-02-28 2026-01-31; do
+    run add "Due $d" x "$d"
+done
+run list --by-due
+expect_eq "twelve tasks in reverse order come out sorted" "12 11 10 9 8 7 6 5 4 3 2 1" \
+    "$(listed_ids)"
 
 echo "== Input validation (overflow regression)"
 reset

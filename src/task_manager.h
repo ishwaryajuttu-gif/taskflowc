@@ -9,7 +9,8 @@
 int load_tasks(void);
 // Returns 0 if the task was added, -1 if the input was rejected
 int add_task(const char* title, const char* description, const char* due_date);
-void display_tasks(void);
+// Print all tasks in file order, or sorted by due date when by_due is nonzero
+void display_tasks(int by_due);
 void complete_task(int id);
 void delete_task(int id);
 void free_tasks(void);
