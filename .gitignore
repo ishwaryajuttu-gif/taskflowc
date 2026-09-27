@@ -1,0 +1,7 @@
+# Build output
+/taskflowc
+*.exe
+*.o
+
+# Runtime task storage
+tasks.txt
