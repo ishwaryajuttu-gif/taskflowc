@@ -9,8 +9,11 @@
 int load_tasks(void);
 void add_task(const char* title, const char* description, const char* due_date);
 void display_tasks(void);
-void complete_task(const char* title);
-void delete_task(const char* title);
+void complete_task(int id);
+void delete_task(int id);
 void free_tasks(void);
+
+// Parse a positive task ID with no sign or leading zeros; returns 0 on success
+int parse_id(const char* text, int* id);
 
 #endif

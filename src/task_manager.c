@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,8 +6,10 @@
 
 #define TASKS_FILE "tasks.txt"
 #define LINE_SIZE 512
+#define MAX_FIELDS 5
 
 typedef struct Task {
+    int id;
     char title[TITLE_SIZE];
     char description[DESCRIPTION_SIZE];
     char due_date[DUE_DATE_SIZE];
@@ -25,33 +28,106 @@ static void append_task(Task* task) {
     tail = task;
 }
 
-// Copy a field of known length into a fixed-size buffer
-static int copy_field(char* dest, size_t dest_size, const char* src, size_t len) {
-    if (len >= dest_size) return -1;
-    memcpy(dest, src, len);
-    dest[len] = '\0';
+// One more than the highest ID in use, or -1 if IDs have run out
+static int next_id(void) {
+    int max = 0;
+    for (Task* current = head; current != NULL; current = current->next) {
+        if (current->id > max) max = current->id;
+    }
+    return max == INT_MAX ? -1 : max + 1;
+}
+
+static Task* find_task(int id) {
+    for (Task* current = head; current != NULL; current = current->next) {
+        if (current->id == id) return current;
+    }
+    return NULL;
+}
+
+int parse_id(const char* text, int* id) {
+    if (text[0] < '1' || text[0] > '9') return -1;
+    int value = 0;
+    for (const char* p = text; *p != '\0'; p++) {
+        if (*p < '0' || *p > '9') return -1;
+        int digit = *p - '0';
+        if (value > (INT_MAX - digit) / 10) return -1;
+        value = value * 10 + digit;
+    }
+    *id = value;
     return 0;
 }
 
-// Parse "title|description|due_date|completed" into task; empty fields are allowed
+// Copy a string into a fixed-size buffer, failing if it doesn't fit
+static int copy_field(char* dest, size_t dest_size, const char* src) {
+    if (strlen(src) >= dest_size) return -1;
+    strcpy(dest, src);
+    return 0;
+}
+
+// Split line on '|' in place; returns the field count, or -1 if there are more than max
+static int split_fields(char* line, char* fields[], int max) {
+    int count = 0;
+    fields[count++] = line;
+    for (char* p = line; *p != '\0'; p++) {
+        if (*p == '|') {
+            if (count == max) return -1;
+            *p = '\0';
+            fields[count++] = p + 1;
+        }
+    }
+    return count;
+}
+
+// Parse "id|title|description|due_date|completed" into task; empty text fields are allowed.
+// Lines from older files have no id field; those tasks get id 0 and are numbered after loading.
 static int parse_line(char* line, Task* task) {
     line[strcspn(line, "\r\n")] = '\0';
 
-    char* sep1 = strchr(line, '|');
-    char* sep2 = sep1 ? strchr(sep1 + 1, '|') : NULL;
-    char* sep3 = sep2 ? strchr(sep2 + 1, '|') : NULL;
-    if (sep3 == NULL || strchr(sep3 + 1, '|') != NULL) return -1;
-
-    if (copy_field(task->title, sizeof(task->title), line, sep1 - line) != 0 ||
-        copy_field(task->description, sizeof(task->description), sep1 + 1, sep2 - sep1 - 1) != 0 ||
-        copy_field(task->due_date, sizeof(task->due_date), sep2 + 1, sep3 - sep2 - 1) != 0) {
+    char* fields[MAX_FIELDS];
+    int count = split_fields(line, fields, MAX_FIELDS);
+    char** field = fields;
+    if (count == MAX_FIELDS) {
+        if (parse_id(fields[0], &task->id) != 0) return -1;
+        field++;
+    } else if (count == MAX_FIELDS - 1) {
+        task->id = 0;
+    } else {
         return -1;
     }
 
-    if (strcmp(sep3 + 1, "0") == 0) task->completed = 0;
-    else if (strcmp(sep3 + 1, "1") == 0) task->completed = 1;
+    if (copy_field(task->title, sizeof(task->title), field[0]) != 0 ||
+        copy_field(task->description, sizeof(task->description), field[1]) != 0 ||
+        copy_field(task->due_date, sizeof(task->due_date), field[2]) != 0) {
+        return -1;
+    }
+
+    if (strcmp(field[3], "0") == 0) task->completed = 0;
+    else if (strcmp(field[3], "1") == 0) task->completed = 1;
     else return -1;
 
+    return 0;
+}
+
+// Reject duplicate IDs, then number any tasks loaded without one
+static int check_and_assign_ids(void) {
+    for (Task* current = head; current != NULL; current = current->next) {
+        if (current->id == 0) continue;
+        for (Task* other = current->next; other != NULL; other = other->next) {
+            if (other->id == current->id) {
+                printf("Error: %s has more than one task with ID %d.\n", TASKS_FILE, current->id);
+                return -1;
+            }
+        }
+    }
+    for (Task* current = head; current != NULL; current = current->next) {
+        if (current->id != 0) continue;
+        int id = next_id();
+        if (id < 0) {
+            printf("Error: no task IDs left.\n");
+            return -1;
+        }
+        current->id = id;
+    }
     return 0;
 }
 
@@ -77,7 +153,8 @@ void save_tasks() {
     }
     Task* current = head;
     while (current != NULL) {
-        fprintf(file, "%s|%s|%s|%d\n",
+        fprintf(file, "%d|%s|%s|%s|%d\n",
+            current->id,
             current->title,
             current->description,
             current->due_date,
@@ -118,7 +195,7 @@ int load_tasks(void) {
         append_task(new_task);
     }
     fclose(file);
-    return 0;
+    return check_and_assign_ids();
 }
 
 void add_task(const char* title, const char* description, const char* due_date) {
@@ -132,17 +209,23 @@ void add_task(const char* title, const char* description, const char* due_date) 
         return;
     }
 
+    int id = next_id();
+    if (id < 0) {
+        printf("Error: no task IDs left.\n");
+        return;
+    }
     Task* new_task = malloc(sizeof(Task));
     if (new_task == NULL) {
         printf("Error: out of memory.\n");
         return;
     }
+    new_task->id = id;
     strcpy(new_task->title, title);
     strcpy(new_task->description, description);
     strcpy(new_task->due_date, due_date);
     new_task->completed = 0;
     append_task(new_task);
-    printf("Task added: %s\n", title);
+    printf("Task added: %s (ID %d)\n", title, id);
     save_tasks();
 }
 
@@ -153,7 +236,8 @@ void display_tasks(void) {
         return;
     }
     while (current != NULL) {
-        printf("Title: %s | Due: %s | Done: %s\n",
+        printf("ID: %d | Title: %s | Due: %s | Done: %s\n",
+            current->id,
             current->title,
             current->due_date,
             current->completed ? "Yes" : "No");
@@ -161,30 +245,27 @@ void display_tasks(void) {
     }
 }
 
-void complete_task(const char* title) {
-    Task* current = head;
-    while (current != NULL) {
-        if (strcmp(current->title, title) == 0) {
-            current->completed = 1;
-            printf("Task marked complete: %s\n", title);
-            save_tasks();
-            return;
-        }
-        current = current->next;
+void complete_task(int id) {
+    Task* task = find_task(id);
+    if (task == NULL) {
+        printf("Task not found.\n");
+        return;
     }
-    printf("Task not found.\n");
+    task->completed = 1;
+    printf("Task marked complete: %s (ID %d)\n", task->title, id);
+    save_tasks();
 }
 
-void delete_task(const char* title) {
+void delete_task(int id) {
     Task* current = head;
     Task* prev = NULL;
     while (current != NULL) {
-        if (strcmp(current->title, title) == 0) {
+        if (current->id == id) {
             if (prev == NULL) head = current->next;
             else prev->next = current->next;
             if (current == tail) tail = prev;
+            printf("Task deleted: %s (ID %d)\n", current->title, id);
             free(current);
-            printf("Task deleted: %s\n", title);
             save_tasks();
             return;
         }
