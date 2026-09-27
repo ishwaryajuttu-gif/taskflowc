@@ -1,5 +1,7 @@
 # TaskFlow-C 🗂️
 
+[![Tests](https://github.com/ishwaryajuttu-gif/taskflowc/actions/workflows/tests.yml/badge.svg)](https://github.com/ishwaryajuttu-gif/taskflowc/actions/workflows/tests.yml)
+
 A command-line Task Manager application built in C, demonstrating core Data Structures and Algorithms (DSA) concepts including Linked Lists and File I/O.
 
 ## 📌 Features
@@ -86,6 +88,8 @@ bash tests/run_tests.sh
 ```
 
 It builds the program into a temporary folder and checks every command, input limits, and handling of corrupt or Windows-style `tasks.txt` files. It prints `PASS` or `FAIL` for each check and exits with status 1 if anything fails.
+
+GitHub Actions runs the same script on Linux and Windows for every pull request and every push to `main` (see `.github/workflows/tests.yml`).
 
 ## 💡 DSA Concepts Used
 
