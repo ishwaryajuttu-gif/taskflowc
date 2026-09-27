@@ -14,18 +14,22 @@ A command-line Task Manager application built in C, demonstrating core Data Stru
 
 - Language: C
 - Data Structure: Linked List
-- Storage: File I/O (CSV format)
+- Storage: File I/O (pipe-separated text file)
 - Version Control: Git & GitHub
 
 ## 📂 Project Structure
 
+```text
 taskflowc/
 ├── src/
 │   ├── task_manager.h   # Shared declarations and field size limits
 │   ├── task_manager.c   # Core task logic & data structure
 │   └── main.c           # CLI entry point
-├── tasks.txt            # Auto-generated task storage
+├── tasks.txt            # Task storage, created at runtime (not committed)
+├── .gitignore
+├── LICENSE
 └── README.md
+```
 
 ## ⚙️ Installation & Setup
 
@@ -37,25 +41,39 @@ taskflowc/
 - Git
 
 ### Clone the Repository
+```bash
 git clone https://github.com/ishwaryajuttu-gif/taskflowc.git
 cd taskflowc
+```
 
 ### Compile
+```bash
 gcc src/task_manager.c src/main.c -o taskflowc
+```
 
 ## 🚀 Usage
 
 ### Add a task
+```bash
 ./taskflowc add "Task Title" "Description" "YYYY-MM-DD"
+```
+
+Titles can be up to 99 characters, descriptions up to 254 and due dates up to 19. The title can't be empty, and no field may contain `|` or a line break.
 
 ### List all tasks
+```bash
 ./taskflowc list
+```
 
 ### Mark task as completed
+```bash
 ./taskflowc complete "Task Title"
+```
 
 ### Delete a task
+```bash
 ./taskflowc delete "Task Title"
+```
 
 ## 💡 DSA Concepts Used
 
