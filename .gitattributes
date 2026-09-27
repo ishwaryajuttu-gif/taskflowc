@@ -1,0 +1,2 @@
+# Keep shell scripts on LF so bash runs them on every platform
+*.sh text eol=lf
