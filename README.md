@@ -63,7 +63,7 @@ gcc src/task_manager.c src/main.c -o taskflowc
 ./taskflowc add "Task Title" "Description" "YYYY-MM-DD"
 ```
 
-Titles can be up to 99 characters, descriptions up to 254 and due dates up to 19. The title can't be empty, and no field may contain `|` or a line break.
+Titles can be up to 99 characters, descriptions up to 254 and due dates up to 19. The title can't be empty, and no field may contain `|` or a line break. If the input is rejected, `add` prints an error and exits with status 1.
 
 Each new task gets the next ID, one more than the highest ID in use, and `add` prints it.
 

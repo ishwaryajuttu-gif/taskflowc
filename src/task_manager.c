@@ -198,26 +198,26 @@ int load_tasks(void) {
     return check_and_assign_ids();
 }
 
-void add_task(const char* title, const char* description, const char* due_date) {
+int add_task(const char* title, const char* description, const char* due_date) {
     if (title[0] == '\0') {
         printf("Error: title cannot be empty.\n");
-        return;
+        return -1;
     }
     if (validate_field("Title", title, TITLE_SIZE) != 0 ||
         validate_field("Description", description, DESCRIPTION_SIZE) != 0 ||
         validate_field("Due date", due_date, DUE_DATE_SIZE) != 0) {
-        return;
+        return -1;
     }
 
     int id = next_id();
     if (id < 0) {
         printf("Error: no task IDs left.\n");
-        return;
+        return -1;
     }
     Task* new_task = malloc(sizeof(Task));
     if (new_task == NULL) {
         printf("Error: out of memory.\n");
-        return;
+        return -1;
     }
     new_task->id = id;
     strcpy(new_task->title, title);
@@ -227,6 +227,7 @@ void add_task(const char* title, const char* description, const char* due_date) 
     append_task(new_task);
     printf("Task added: %s (ID %d)\n", title, id);
     save_tasks();
+    return 0;
 }
 
 void display_tasks(void) {

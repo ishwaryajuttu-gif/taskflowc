@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     int status = 0;
     int id;
     if (strcmp(argv[1], "add") == 0 && argc == 5) {
-        add_task(argv[2], argv[3], argv[4]);
+        if (add_task(argv[2], argv[3], argv[4]) != 0) status = 1;
     } else if (strcmp(argv[1], "list") == 0 && argc == 2) {
         display_tasks();
     } else if ((strcmp(argv[1], "complete") == 0 || strcmp(argv[1], "delete") == 0) && argc == 3) {
